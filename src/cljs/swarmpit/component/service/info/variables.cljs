@@ -10,9 +10,14 @@
 
 (enable-console-print!)
 
+(defn mask-if-secret [item]
+  (if (re-find #"(?i)secret" (:name item))
+    (str (apply str (repeat (count (:value item)) "*")))
+    (:value item)))
+
 (def render-metadata
   {:primary   (fn [item] (:name item))
-   :secondary (fn [item] (:value item))})
+   :secondary (fn [item] (mask-if-secret item))})
 
 (rum/defc form < rum/static [variables service-id immutable?]
   (comp/card

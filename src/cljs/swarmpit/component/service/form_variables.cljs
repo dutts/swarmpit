@@ -4,7 +4,8 @@
             [material.component.list.edit :as list]
             [swarmpit.component.state :as state]
             [sablono.core :refer-macros [html]]
-            [rum.core :as rum]))
+            [rum.core :as rum]
+            [clojure.string :as str]))
 
 (enable-console-print!)
 
@@ -22,7 +23,7 @@
      :InputLabelProps {:shrink true}
      :onChange        #(state/update-item index :name (-> % .-target .-value) form-value-cursor)}))
 
-(defn- form-value [value index]
+(defn- form-value [value index & {:keys [is-password?]}]
   (comp/text-field
     {:fullWidth       true
      :placeholder     "Value"
@@ -32,6 +33,7 @@
      :variant         "outlined"
      :margin          "dense"
      :InputLabelProps {:shrink true}
+     :type            (if is-password? "password" "text")
      :onChange        #(state/update-item index :value (-> % .-target .-value) form-value-cursor)}))
 
 (def form-metadata
@@ -41,7 +43,10 @@
     :render-fn (fn [value _ index] (form-name value index))}
    {:name      "Value"
     :key       [:value]
-    :render-fn (fn [value _ index] (form-value value index))}])
+    :render-fn (fn [value row index] 
+                 (let [name-value (:name row)
+                       is-password? (str/includes? (str/lower-case name-value) "secret")]
+                   (form-value value index :is-password? is-password?)))}])
 
 (defn- form-table
   [variables]
